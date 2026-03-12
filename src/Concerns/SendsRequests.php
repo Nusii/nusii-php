@@ -8,10 +8,18 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\RequestOptions;
 use Nusii\Data\PaginatedResponse;
 use Nusii\Exceptions\AuthenticationException;
+use Nusii\Exceptions\BadRequestException;
+use Nusii\Exceptions\ForbiddenException;
+use Nusii\Exceptions\GoneException;
+use Nusii\Exceptions\MethodNotAllowedException;
+use Nusii\Exceptions\NotAcceptableException;
 use Nusii\Exceptions\NotFoundException;
 use Nusii\Exceptions\NusiiException;
+use Nusii\Exceptions\PaymentRequiredException;
 use Nusii\Exceptions\RateLimitException;
 use Nusii\Exceptions\ServerException;
+use Nusii\Exceptions\ServiceUnavailableException;
+use Nusii\Exceptions\UnprocessableEntityException;
 use Nusii\Exceptions\ValidationException;
 use Nusii\Nusii;
 use Psr\Http\Message\ResponseInterface;
@@ -141,19 +149,30 @@ trait SendsRequests
             }
         }
 
-        throw match (true) {
-            $statusCode === 401 => new AuthenticationException($message, $statusCode, $body, $e),
-            $statusCode === 404 => new NotFoundException($message, $statusCode, $body, $e),
-            $statusCode === 429 => new RateLimitException(
+        throw match ($statusCode) {
+            400 => new BadRequestException($message, $statusCode, $body, $e),
+            401 => new AuthenticationException($message, $statusCode, $body, $e),
+            402 => new PaymentRequiredException($message, $statusCode, $body, $e),
+            403 => new ForbiddenException($message, $statusCode, $body, $e),
+            404 => new NotFoundException($message, $statusCode, $body, $e),
+            405 => new MethodNotAllowedException($message, $statusCode, $body, $e),
+            406 => new NotAcceptableException($message, $statusCode, $body, $e),
+            410 => new GoneException($message, $statusCode, $body, $e),
+            422 => new UnprocessableEntityException($message, $statusCode, $body, $e),
+            429 => new RateLimitException(
                 $message,
                 $statusCode,
                 retryAfter: $response ? ((int) $response->getHeaderLine('x-ratelimit-retry-after') ?: null) : null,
                 responseBody: $body,
                 previous: $e,
             ),
-            $statusCode >= 400 && $statusCode < 500 => new ValidationException($message, $statusCode, $body, $e),
-            $statusCode >= 500 => new ServerException($message, $statusCode, $body, $e),
-            default => new NusiiException($message, $statusCode, $body, $e),
+            500 => new ServerException($message, $statusCode, $body, $e),
+            503 => new ServiceUnavailableException($message, $statusCode, $body, $e),
+            default => match (true) {
+                $statusCode >= 400 && $statusCode < 500 => new ValidationException($message, $statusCode, $body, $e),
+                $statusCode >= 500 => new ServerException($message, $statusCode, $body, $e),
+                default => new NusiiException($message, $statusCode, $body, $e),
+            },
         };
     }
 
