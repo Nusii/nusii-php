@@ -105,6 +105,37 @@ describe('LineItemResource', function () {
         expect($body['line_item']['quantity'])->toBe(5);
     });
 
+    it('creates a price range line item', function () {
+        $mock = MockClient::create([
+            TestResponse::resource('line_items', 11, [
+                'name' => 'Discovery',
+                'cost_type' => 'range',
+                'amount_in_cents' => 500000,
+                'amount_formatted' => '$5,000.00',
+                'maximum_amount_in_cents' => 800000,
+                'maximum_amount_formatted' => '$8,000.00',
+                'section_id' => 7,
+            ]),
+        ]);
+
+        $nusii = new Nusii('test-key', client: $mock->client());
+        $item = $nusii->lineItems()->createForSection(7, [
+            'name' => 'Discovery',
+            'cost_type' => 'range',
+            'amount' => 500000,
+            'maximum_amount' => 800000,
+        ]);
+
+        // response fields pass through
+        expect($item['maximum_amount_in_cents'])->toBe(800000);
+        expect($item['maximum_amount_formatted'])->toBe('$8,000.00');
+
+        // maximum_amount is forwarded in the request body
+        $body = json_decode((string) $mock->lastRequest()->getBody(), true);
+        expect($body['line_item']['cost_type'])->toBe('range');
+        expect($body['line_item']['maximum_amount'])->toBe(800000);
+    });
+
     it('updates a line item', function () {
         $mock = MockClient::create([
             TestResponse::resource('line_items', 3, [

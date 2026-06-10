@@ -195,10 +195,22 @@ $item = $nusii->lineItems()->createForSection(sectionId: 10, attributes: [
     'name' => 'Design Work',
     'quantity' => 10,
     'amount' => 7500,          // in cents
-    'cost_type' => 'fixed',    // "fixed" or "hourly"
+    'cost_type' => 'per',      // "fixed", "recurring", "per" or "range"
     'per_type' => 'hour',
     'position' => 1,
 ]);
+
+// Create a price range line item ("$5,000 – $8,000").
+// "amount" is the low end and "maximum_amount" the high end, both in cents.
+// Requires the price ranges feature to be enabled for your account.
+$item = $nusii->lineItems()->createForSection(sectionId: 10, attributes: [
+    'name' => 'Discovery & UX research',
+    'cost_type' => 'range',
+    'amount' => 500000,
+    'maximum_amount' => 800000,
+]);
+echo $item['maximum_amount_in_cents'];   // 800000
+echo $item['maximum_amount_formatted'];  // "$8,000.00"
 
 // Update a line item
 $item = $nusii->lineItems()->update(50, [
