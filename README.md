@@ -227,8 +227,11 @@ $nusii->lineItems()->delete(50);
 Templates are read-only.
 
 ```php
-// List templates
+// List your account's templates
 $templates = $nusii->templates()->list();
+
+// List Nusii's public templates instead
+$publicTemplates = $nusii->templates()->list(publicTemplates: true);
 
 // Get a single template
 $template = $nusii->templates()->get(5);

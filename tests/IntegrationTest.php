@@ -232,6 +232,15 @@ describe('Integration: Templates', function () {
 
         expect($templates)->toBeInstanceOf(PaginatedResponse::class);
     });
+
+    it('lists public templates', function () {
+        $templates = $this->nusii->templates()->list(publicTemplates: true);
+
+        expect($templates)->toBeInstanceOf(PaginatedResponse::class);
+        foreach ($templates->data as $template) {
+            expect($template['public_template'])->toBeTrue();
+        }
+    });
 });
 
 describe('Integration: Proposal Activities', function () {

@@ -27,6 +27,27 @@ describe('TemplateResource', function () {
         $request = $mock->lastRequest();
         expect($request->getMethod())->toBe('GET');
         expect((string) $request->getUri())->toContain('/api/v2/templates');
+
+        $query = [];
+        parse_str($request->getUri()->getQuery(), $query);
+        expect($query)->not->toHaveKey('public_templates');
+    });
+
+    it('lists public templates', function () {
+        $mock = MockClient::create([
+            TestResponse::collection('templates', [
+                ['id' => 2, 'name' => 'Web Project', 'public_template' => true],
+            ]),
+        ]);
+
+        $nusii = new Nusii('test-key', client: $mock->client());
+        $response = $nusii->templates()->list(publicTemplates: true);
+
+        expect($response->data[0]['public_template'])->toBeTrue();
+
+        $query = [];
+        parse_str($mock->lastRequest()->getUri()->getQuery(), $query);
+        expect($query['public_templates'])->toBe('true');
     });
 
     it('gets a single template', function () {

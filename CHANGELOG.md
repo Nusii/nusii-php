@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.0
+
+- Add a `publicTemplates` argument to `templates()->list()` that lists Nusii's public templates instead of the account's own.
+
 ## 1.2.0
 
 - Document the `range` cost type and the `maximum_amount` attribute for price range line items. Attributes pass through, so no code change is required; the new `maximum_amount_in_cents` / `maximum_amount_formatted` (line items) and `maximum_total_in_cents` / `maximum_total_formatted` (sections) response fields are already available.
